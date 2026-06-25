@@ -335,7 +335,7 @@ Write structured `DEBUG` logs to a file while leaving the console at its default
 GUIDELLM__LOGGING__LOG_FILE=guidellm.log GUIDELLM__LOGGING__LOG_FILE_LEVEL=DEBUG guidellm run ...
 ```
 
-If logging isn't responding to the environment variables, run the `guidellm config` command to validate that the environment variables match and are being set correctly.
+If logging isn't responding to the environment variables, run the `guidellm env` command to validate that the environment variables match and are being set correctly.
 
 ## Additional Resources
 
