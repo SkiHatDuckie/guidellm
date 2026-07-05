@@ -304,17 +304,36 @@ src/ui/lib/store/[runInfo/workloadDetails/benchmarks]WindowData.ts
 
 In the future this will be replaced by a configurable untracked file for dev use.
 
-### Logging
+## Logging
 
-Logging is useful for learning how GuideLLM works and finding problems.
+GuideLLM uses [Loguru](https://github.com/Delgan/loguru) for logging, which is useful for learning how GuideLLM works and for diagnosing problems. Logging is configured entirely through environment variables (or the equivalent `GUIDELLM__LOGGING__*` settings), so no code changes are needed to change what is logged or where it goes.
 
-Logging is set using the following environment variables:
+GuideLLM writes to two independent sinks:
 
-- `GUIDELLM__LOGGING__DISABLED`: Disable logging (default: false).
-- `GUIDELLM__LOGGING__CLEAR_LOGGERS`: Clear existing loggers from loguru (default: true).
-- `GUIDELLM__LOGGING__CONSOLE_LOG_LEVEL`: Log level for console logging (default: none, options: DEBUG, INFO, WARNING, ERROR, CRITICAL).
-- `GUIDELLM__LOGGING__LOG_FILE`: Path to the log file for file logging (default: guidellm.log if log file level set else none)
-- `GUIDELLM__LOGGING__LOG_FILE_LEVEL`: Log level for file logging (default: INFO if log file set else none).
+- **Console logging** is enabled by default and prints human-readable messages (timestamp, level, `module:function:line`, and message) to `stdout`. Its verbosity is controlled by `GUIDELLM__LOGGING__CONSOLE_LOG_LEVEL` (default: `WARNING`).
+- **File logging** is disabled by default and turns on as soon as either `GUIDELLM__LOGGING__LOG_FILE` or `GUIDELLM__LOGGING__LOG_FILE_LEVEL` is set. File logs are written as structured JSON (one object per line) for easy parsing, to `GUIDELLM__LOGGING__LOG_FILE` (default: `guidellm.log`) at `GUIDELLM__LOGGING__LOG_FILE_LEVEL` (default: `INFO`).
+
+### Logging environment variables
+
+- `GUIDELLM__LOGGING__DISABLED`: Disable logging entirely (default: `false`).
+- `GUIDELLM__LOGGING__CLEAR_LOGGERS`: Clear existing loguru loggers before configuring GuideLLM's own (default: `true`).
+- `GUIDELLM__LOGGING__CONSOLE_LOG_LEVEL`: Level for console logging, one of `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` (default: `WARNING`).
+- `GUIDELLM__LOGGING__LOG_FILE`: Path to the log file; setting it enables file logging (default: `guidellm.log` when a file level is set, otherwise file logging is off).
+- `GUIDELLM__LOGGING__LOG_FILE_LEVEL`: Level for file logging; setting it enables file logging (default: `INFO` when a log file is set, otherwise off).
+
+### Logging examples
+
+Enable verbose console output for a single run. The interactive progress display can overwrite console log lines, so `--disable-progress` is recommended when reading console logs:
+
+```bash
+GUIDELLM__LOGGING__CONSOLE_LOG_LEVEL=DEBUG guidellm run ... --disable-progress
+```
+
+Write structured `DEBUG` logs to a file while leaving the console at its default level:
+
+```bash
+GUIDELLM__LOGGING__LOG_FILE=guidellm.log GUIDELLM__LOGGING__LOG_FILE_LEVEL=DEBUG guidellm run ...
+```
 
 If logging isn't responding to the environment variables, run the `guidellm config` command to validate that the environment variables match and are being set correctly.
 
