@@ -562,15 +562,13 @@ async def benchmark_generative_text(
 
 async def reimport_benchmarks_report(
     file: Path,
-    output_path: Path | None,
-    output_formats: tuple[str, ...] | list[str] = ("console", "json", "html", "csv"),
+    outputs: tuple[BenchmarkOutputArgs, ...] | list[dict[str, Any]],
 ) -> tuple[GenerativeBenchmarksReport, dict[str, Any]]:
     """
     Load and re-export an existing benchmarks report in specified output formats.
 
     :param file: Path to the existing benchmark report file to load
-    :param output_path: Base path for output file generation, or None for default
-    :param output_formats: Output format kind strings to resolve and finalize
+    :param outputs: Output format kind strings to resolve and finalize
     :return: Tuple of loaded GenerativeBenchmarksReport and dictionary of output
         results
     """
@@ -585,19 +583,16 @@ async def reimport_benchmarks_report(
             f" loaded {len(report.benchmarks)} benchmark(s)"
         )
 
-    base_path = Path(output_path) if output_path else Path.cwd()
     output_args: list[BenchmarkOutputArgs] = []
-    for fmt in output_formats:
-        data: dict[str, Any] = {"kind": fmt}
-        data["path"] = base_path / f"benchmarks.{fmt}"
-        output_args.append(BenchmarkOutputArgs.model_validate(data))
+    for fmt in outputs:
+        output_args.append(BenchmarkOutputArgs.model_validate(fmt))
 
-    output_format_results: dict[str, Any] = {}
+    output_results: dict[str, Any] = {}
     for args in output_args:
         output = GenerativeBenchmarkerOutput.resolve(args)
-        output_format_results[args.kind] = await output.finalize(report)
+        output_results[args.kind] = await output.finalize(report)
 
-    for key, value in output_format_results.items():
+    for key, value in output_results.items():
         console.print_update(title=f"  {key:<8}: {value}", status="debug")
 
-    return report, output_format_results
+    return report, output_results
